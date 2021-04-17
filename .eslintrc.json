@@ -6,15 +6,30 @@
           ".js",
           ".jsx",
           ".ts",
-          ".tsx"
+          ".tsx",
+          ".d.ts"
+        ],
+        "paths": [
+          "./"
         ]
       }
     }
   },
   "extends": [
     "airbnb",
-    "prettier"
+    "prettier",
+    "eslint:recommended",
+    "plugin:react/recommended",
+    "plugin:import/errors"
   ],
+  "plugins": [
+    "react",
+    "@typescript-eslint"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "ecmaFeatures": {
+    "jsx": true
+  },
   "env": {
     "browser": true,
     "commonjs": true,
@@ -23,6 +38,40 @@
     "node": true
   },
   "rules": {
+    "react/jsx-uses-react": "off",
+    "react/react-in-jsx-scope": "off",
+    "no-empty": [
+      "error",
+      {
+        "allowEmptyCatch": true
+      }
+    ],
+    "@typescript-eslint/no-unused-vars": [
+      2,
+      {
+        "args": "none"
+      }
+    ],
+    "no-use-before-define": "off",
+    "@typescript-eslint/no-use-before-define": [
+      "error",
+      {
+        "functions": false,
+        "variables": false
+      }
+    ],
+    "no-param-reassign": [
+      2,
+      {
+        "props": false
+      }
+    ],
+    "import/no-extraneous-dependencies": [
+      "error",
+      {
+        "devDependencies": true
+      }
+    ],
     "jsx-a11y/href-no-hash": [
       "off"
     ],

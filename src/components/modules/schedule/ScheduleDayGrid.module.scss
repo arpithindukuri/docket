@@ -1,0 +1,91 @@
+.Container {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  align-items: center;
+  overflow: hidden;
+  position: relative;
+}
+
+.HourBlock {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: 100%;
+  background-color: white;
+  border-bottom: 1px solid #ddd;
+  pointer-events: none;
+  // &:first-child {
+  //   border-top: 1px solid #ddd;
+  // }
+}
+
+@keyframes fadein {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Firefox < 16 */
+@-moz-keyframes fadein {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Safari, Chrome and Opera > 12.1 */
+@-webkit-keyframes fadein {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Internet Explorer */
+@-ms-keyframes fadein {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Opera < 12.1 */
+@-o-keyframes fadein {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.Placeholder {
+  position: absolute;
+  width: 90%;
+  border-radius: 4px;
+  text-align: center;
+  vertical-align: middle;
+  font-weight: bolder;
+  font-size: 2rem;
+  width: -moz-calc(100% - 0.5rem);
+  width: -webkit-calc(100% - 0.5rem);
+  width: -o-calc(100% - 0.5rem);
+  width: calc(100% - 0.5rem);
+  color: white;
+  -webkit-animation: fadein 0.2s; /* Safari, Chrome and Opera > 12.1 */
+  -moz-animation: fadein 0.2s; /* Firefox < 16 */
+  -ms-animation: fadein 0.2s; /* Internet Explorer */
+  -o-animation: fadein 0.2s; /* Opera < 12.1 */
+  animation: fadein 0.2s;
+  // transition: transform 0.1s;
+}
