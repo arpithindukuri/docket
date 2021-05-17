@@ -1,5 +1,6 @@
+import { createPortal } from 'react-dom';
 import {
-  MouseEvent,
+  // MouseEvent,
   // TouchEvent,
   useCallback,
   useContext,
@@ -9,13 +10,16 @@ import {
 } from 'react';
 import { format, parse } from 'date-fns';
 import { Card, CardContent, makeStyles } from '@material-ui/core';
+import {
+  DragOverlay,
+  useDndContext,
+  useDndMonitor,
+  useDroppable,
+} from '@dnd-kit/core';
 
-import GripsContext from '../../../react-grips/context/GripsContext';
-import useDrop from '../../../react-grips/hooks/useDrop';
+import DocketContext from 'src/DocketContext';
 import ScheduleCard from './ScheduleCard';
 import { useAppDispatch, useAppSelector } from '../../../redux/hooks';
-
-import styles from './ScheduleDayGrid.module.scss';
 import {
   addEvent,
   Event,
@@ -23,6 +27,8 @@ import {
   updateEvent,
 } from '../../../redux/eventSlice';
 import { selectTagByName } from '../../../redux/tagSlice';
+
+import styles from './ScheduleDayGrid.module.scss';
 
 export interface PropTypes {
   hourHeight: number;
@@ -71,22 +77,38 @@ export default function ScheduleDayGrid({ hourHeight, date }: PropTypes) {
   const [events, setEvents] = useState<Event[]>([]);
 
   const rows = Array.from({ length: 24 }, (item, index) => index);
-  const ref = useRef<HTMLDivElement | null>(null);
   const timeBarRef = useRef<HTMLDivElement | null>(null);
 
-  const { dropID, dragData } = useContext(GripsContext);
+  const { isOver, setNodeRef, node } = useDroppable({ id: thisDropID });
+  const { dragSource, dragData } = useContext(DocketContext);
+  const { active, over } = useDndContext();
+
+  const [activeIndex, setActiveIndex] = useState(-1);
   const [startScroll, setStartScroll] = useState(0);
   const [translateY, setTranslateY] = useState(0);
+
+  useEffect(() => {
+    if (active?.data.current?.sortable.index !== undefined) {
+      setActiveIndex(() => active?.data.current?.sortable.index);
+    } else if (active?.data.current?.sortable.index === undefined) {
+      setActiveIndex(() => -1);
+    }
+  }, [active, activeIndex]);
 
   const now = new Date();
   const timeBarTop =
     now.getHours() * hourHeight + (now.getMinutes() / 60) * hourHeight;
 
+  const isValidSource =
+    dragSource === 'todo' ||
+    dragSource === 'schedule' ||
+    dragData.scheduleDragData.sourceScheduleDropID !== thisDropID;
+
   useEffect(() => {
     setTimeout(() => {
-      ref.current?.parentElement?.parentElement?.parentElement?.parentElement?.scroll(
-        { top: timeBarTop - hourHeight * 2 },
-      );
+      node.current?.parentElement?.parentElement?.scroll({
+        top: timeBarTop - hourHeight * 2,
+      });
     }, 0);
   }, [timeBarRef.current]);
 
@@ -100,27 +122,22 @@ export default function ScheduleDayGrid({ hourHeight, date }: PropTypes) {
   }, [rawEvents]);
 
   useEffect(() => {
-    if (dropID === thisDropID) {
+    if (isOver) {
       setStartScroll(
         () =>
           // eslint-disable-next-line max-len
-          ref.current?.parentElement?.parentElement?.parentElement?.parentElement?.parentElement?.getBoundingClientRect()
+          node.current?.parentElement?.parentElement?.parentElement?.getBoundingClientRect()
             .y || 0,
       );
     }
-  }, [dropID]);
+  }, [isOver]);
 
   const handleMove = useCallback(
     (e) => {
-      if (!dropID || dropID !== thisDropID) return;
-      if (
-        (dragData.dragSource === 'todo' ||
-          dragData.dragSource === 'schedule') &&
-        e
-      ) {
+      if (!isOver) return;
+      if (isValidSource && e) {
         let num =
-          (ref.current?.parentElement?.parentElement?.parentElement
-            ?.parentElement?.scrollTop || 0) +
+          (node.current?.parentElement?.parentElement?.scrollTop || 0) +
           e.pageY -
           startScroll -
           48;
@@ -129,7 +146,7 @@ export default function ScheduleDayGrid({ hourHeight, date }: PropTypes) {
         setTranslateY(() => num);
       }
     },
-    [startScroll, dropID],
+    [startScroll, isOver],
   );
 
   const handleMouseMove = useCallback(
@@ -146,14 +163,16 @@ export default function ScheduleDayGrid({ hourHeight, date }: PropTypes) {
   );
 
   useEffect(() => {
-    if (dropID === thisDropID && dragData.dragSource === 'todo') {
+    if (isOver && isValidSource) {
       document.addEventListener('touchmove', handleTouchMove);
+      document.addEventListener('mousemove', handleMouseMove);
     }
 
     return () => {
       document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('mousemove', handleMouseMove);
     };
-  }, [dropID, handleTouchMove]);
+  }, [isOver, isValidSource, handleTouchMove, handleMouseMove]);
 
   const dropHandler = useCallback(() => {
     const hour = ~~(translateY / hourHeight); // eslint-disable-line no-bitwise
@@ -167,11 +186,11 @@ export default function ScheduleDayGrid({ hourHeight, date }: PropTypes) {
     newStart.setFullYear(date.getFullYear(), date.getMonth(), date.getDate());
     newEnd.setHours(endHour, endMin, 0, 0);
 
-    if (dragData.dragSource === 'todo') {
+    if (dragSource === 'todo' && dragData.todoDragData.todo) {
       dispatch(
         addEvent({
-          title: dragData.todoPayload.todo.title,
-          tagName: dragData.todoPayload.todo.tagName,
+          title: dragData.todoDragData.todo.title,
+          tagName: dragData.todoDragData.todo.tagName,
           start: format(newStart, 'T'),
           end: format(newEnd, 'T'),
           allDay: false,
@@ -179,11 +198,12 @@ export default function ScheduleDayGrid({ hourHeight, date }: PropTypes) {
       );
       setTranslateY(() => 0);
     } else if (
-      dragData.dragSource === 'schedule' &&
-      dragData.schedulePayload.sourceScheduleDropID !== thisDropID
+      dragSource === 'schedule' &&
+      dragData.scheduleDragData.sourceScheduleDropID !== thisDropID &&
+      dragData.scheduleDragData.event
     ) {
-      const start = parse(dragData.schedulePayload.event.start, 'T', date);
-      const end = parse(dragData.schedulePayload.event.end, 'T', date);
+      const start = parse(dragData.scheduleDragData.event.start, 'T', date);
+      const end = parse(dragData.scheduleDragData.event.end, 'T', date);
       newEnd.setHours(
         hour + (end.getHours() - start.getHours()),
         min + (end.getMinutes() - start.getMinutes()),
@@ -193,37 +213,41 @@ export default function ScheduleDayGrid({ hourHeight, date }: PropTypes) {
 
       dispatch(
         updateEvent({
-          oldStart: dragData.schedulePayload.event.start,
-          key: dragData.schedulePayload.event.key,
+          oldStart: dragData.scheduleDragData.event.start,
+          key: dragData.scheduleDragData.event.key,
           event: {
-            key: dragData.schedulePayload.event.key,
-            title: dragData.schedulePayload.event.title,
-            tagName: dragData.schedulePayload.event.tagName,
+            key: dragData.scheduleDragData.event.key,
+            title: dragData.scheduleDragData.event.title,
+            tagName: dragData.scheduleDragData.event.tagName,
             start: format(newStart, 'T'),
             end: format(newEnd, 'T'),
-            allDay: dragData.schedulePayload.event.allDay,
+            allDay: dragData.scheduleDragData.event.allDay,
           },
         }),
       );
       setTranslateY(() => 0);
     }
-  }, [dragData, translateY]);
-
-  useDrop({ thisDropID, dropHandler });
+  }, [isOver, dragData, translateY]);
 
   const tagName =
-    dragData.todoPayload && dragData.todoPayload.todo.tagName
-      ? dragData.todoPayload.todo.tagName
+    dragData.todoDragData.todo && dragData.todoDragData.todo.tagName
+      ? dragData.todoDragData.todo.tagName
       : '';
   const tag = useAppSelector(selectTagByName(tagName));
   const c = tag ? tag.color : 'grey';
 
+  useDndMonitor({
+    onDragEnd: (dropEvent) => {
+      if (dropEvent.over?.id === thisDropID) dropHandler();
+    },
+  });
+
   return (
     <div
-      ref={ref}
+      ref={setNodeRef}
       className={styles.Container}
       data-dropid={thisDropID}
-      onMouseMove={handleMouseMove}
+      style={{ backgroundColor: isOver ? '#d4d4d4' : '' }}
     >
       {rows.map((item) => (
         <div
@@ -258,10 +282,11 @@ export default function ScheduleDayGrid({ hourHeight, date }: PropTypes) {
       ))}
       {events?.map((item) => (
         <ScheduleCard
-          key={item.key}
+          key={`schedule-key-${item.key}`}
+          thisID={`schedule-key-${item.key}`}
           event={item}
           hourHeight={hourHeight}
-          scrollRef={ref}
+          scrollRef={node}
           thisDropID={thisDropID}
         />
       ))}
@@ -278,22 +303,47 @@ export default function ScheduleDayGrid({ hourHeight, date }: PropTypes) {
             <div className={classes.leftCircle} />
           </div>
         )}
-      {dropID === thisDropID &&
-        (dragData.dragSource === 'todo' ||
-          (dragData.dragSource === 'schedule' &&
-            dragData.schedulePayload.sourceScheduleDropID !== thisDropID)) && (
-          <Card
-            className={styles.Placeholder}
-            style={{
-              height: hourHeight,
-              transition: 'transform 0.1s',
-              transform: `translate(0px, ${translateY}px)`,
-              background: c,
-            }}
-          >
-            <CardContent style={{ color: 'white' }}>+</CardContent>
-          </Card>
-        )}
+      {isOver && isValidSource && (
+        <Card
+          className={styles.Placeholder}
+          style={{
+            height: hourHeight,
+            // transition: 'transform 0.1s',
+            transform: `translate(0px, ${translateY}px)`,
+            background: c,
+          }}
+        >
+          <CardContent style={{ color: 'white' }}>+</CardContent>
+        </Card>
+      )}
+      {createPortal(
+        <DragOverlay
+          zIndex={10000}
+          dropAnimation={{
+            duration: 300,
+            easing: 'cubic-bezier(0.25, 0.1, 0.25, 1.0)',
+          }}
+          style={{
+            pointerEvents: 'none',
+            touchAction: 'none',
+            transition: 'opacity 0.3s',
+            opacity: over?.id.split('-')[0] === 'schedule' ? '0.3' : '',
+          }}
+        >
+          {active?.id.split('-')[0] === 'schedule' && events.length > 0 ? (
+            <ScheduleCard
+              thisID={`schedule-key-${
+                events[activeIndex > -1 ? activeIndex : 0].key
+              }`}
+              event={events[activeIndex > -1 ? activeIndex : 0]}
+              hourHeight={hourHeight}
+              scrollRef={node}
+              thisDropID={thisDropID}
+            />
+          ) : null}
+        </DragOverlay>,
+        document.body,
+      )}
     </div>
   );
 }

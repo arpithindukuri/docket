@@ -1,30 +1,38 @@
 import { useEffect } from 'react';
-import classNames from 'classnames';
-import axios from 'axios';
+// import axios from 'axios';
+import {
+  DndContext,
+  KeyboardSensor,
+  MouseSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
 import jwtDecode, { JwtPayload } from 'jwt-decode';
 import 'overlayscrollbars/css/OverlayScrollbars.css';
-import { createMuiTheme } from '@material-ui/core';
-import { ThemeProvider } from '@material-ui/core/styles';
+import {
+  createMuiTheme,
+  createStyles,
+  makeStyles,
+  ThemeProvider,
+} from '@material-ui/core';
 
 // import { db, funcs } from './firebase';
 import { setToken, clearToken } from './ServiceWorker';
-import GripsProvider from './react-grips/context/GripsProvider';
-
-import 'react-grid-layout/css/styles.css';
-import 'react-resizable/css/styles.css';
-import styles from './App.module.scss';
-import './Helper.scss';
 import SideBar from './components/SideBar';
 import Dashboard from './pages/Dashboard';
 import { auth } from './firebase';
 import { useAppDispatch, useAppSelector } from './redux/hooks';
 import { selectMe, signIn } from './redux/userSlice';
 import { initializeRedux } from './redux/store';
-// import '@fontsource/open-sans';
-// import '@fontsource/poppins';
+import { DocketProvider } from './DocketContext';
+
+import 'react-grid-layout/css/styles.css';
+import 'react-resizable/css/styles.css';
+import './Helper.scss';
 
 const defaultTheme = createMuiTheme({
-  shape: { borderRadius: 10 },
+  shape: { borderRadius: 0 },
 });
 
 const theme = createMuiTheme({
@@ -74,13 +82,44 @@ const theme = createMuiTheme({
         minWidth: 0,
       },
     },
+    // MuiChip: {
+    //   label: {
+    //     webkitTouchCallout: 'none',
+    //     webkitUserSelect: 'none',
+    //     khtmlUserSelect: 'none',
+    //     mozUserSelect: 'none',
+    //     msUserSelect: 'none',
+    //     userSelect: 'none',
+    //   },
+    //   labelSmall: {
+    //     webkitTouchCallout: 'none',
+    //     webkitUserSelect: 'none',
+    //     khtmlUserSelect: 'none',
+    //     mozUserSelect: 'none',
+    //     msUserSelect: 'none',
+    //     userSelect: 'none',
+    //   },
+    // },
   },
 });
+
+const useStyles = makeStyles(() =>
+  createStyles({
+    container: {
+      width: '100vw',
+      minHeight: '100vh',
+      overflow: 'hidden',
+      position: 'relative',
+      display: 'flex',
+      backgroundColor: theme.palette.grey[200],
+    },
+  }),
+);
 
 function App() {
   const me = useAppSelector(selectMe);
   const dispatch = useAppDispatch();
-  axios.defaults.baseURL = 'http://localhost:5001/docket-41868/us-central1/app';
+  // axios.defaults.baseURL = 'http://localhost:5001/docket-41868/us-central1/app';
   const email = 'daniel@test.com';
   const password = 'daniel';
 
@@ -93,7 +132,7 @@ function App() {
           console.log('should be logged out');
         } else {
           console.log('should be logged in!');
-          axios.defaults.headers.common.Authorization = token;
+          // axios.defaults.headers.common.Authorization = token;
         }
       } catch (error) {
         // eslint-disable-next-line no-console
@@ -132,19 +171,33 @@ function App() {
     if (me.id) initializeRedux();
   }, [me]);
 
+  const sensors = useSensors(
+    useSensor(MouseSensor),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 250,
+        tolerance: 5,
+      },
+    }),
+    useSensor(KeyboardSensor),
+  );
+
+  const classes = useStyles();
+
   return (
-    <GripsProvider>
-      <ThemeProvider theme={{ ...theme }}>
-        <div
-          className={classNames(styles.App)}
-          style={{ backgroundColor: theme.palette.background.paper }}
-          id="grips"
-        >
-          <SideBar />
-          <Dashboard />
-        </div>
-      </ThemeProvider>
-    </GripsProvider>
+    <DocketProvider>
+      <DndContext sensors={sensors}>
+        <ThemeProvider theme={{ ...theme }}>
+          <div
+            className={classes.container}
+            id="grips"
+          >
+            <SideBar />
+            <Dashboard />
+          </div>
+        </ThemeProvider>
+      </DndContext>
+    </DocketProvider>
   );
 }
 

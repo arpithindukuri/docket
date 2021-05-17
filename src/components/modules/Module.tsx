@@ -15,11 +15,11 @@ const useStyles = makeStyles((theme) =>
       height: '100%',
       boxSizing: 'border-box',
       padding: '1rem',
-      // borderRadius: 0,
+      borderRadius: 0,
     },
     header: {
-      zIndex: theme.zIndex.drawer + 100,
-      boxShadow: theme.shadows[1],
+      zIndex: theme.zIndex.appBar + 10,
+      // boxShadow: theme.shadows[1],
     },
     title: {
       fontWeight: 700,
@@ -30,6 +30,7 @@ const useStyles = makeStyles((theme) =>
       },
     },
     body: {
+      position: 'relative',
       flexGrow: 1,
       // borderTop: `2px solid ${theme.palette.divider}`,
     },
@@ -51,7 +52,7 @@ export default function Module({ title, children }: PropTypes) {
         title={title}
         titleTypographyProps={{
           variant: 'h5',
-          className: `${classes.title} module-handle`,
+          className: `${classes.title} module-handle grabbable`,
           style: {
             display: 'unset',
           },

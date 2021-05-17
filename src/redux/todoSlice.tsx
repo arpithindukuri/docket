@@ -3,6 +3,7 @@ import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 // import { format } from 'date-fns';
 // import { v4 as uuidv4 } from 'uuid';
 
+import { arrayMove } from '@dnd-kit/sortable';
 import { Todo } from 'types';
 import { db } from 'src/firebase';
 import { RootState } from './store';
@@ -184,6 +185,18 @@ export const todoSlice = createSlice({
         state.todos[index].isDone = !state.todos[index].isDone;
       }
     },
+    reorder: (
+      state,
+      action: PayloadAction<{ activeIndex: number; overIndex: number }>,
+    ) => {
+      if (state.todos && state.todos.length > 0) {
+        state.todos = arrayMove(
+          state.todos,
+          action.payload.activeIndex,
+          action.payload.overIndex,
+        );
+      }
+    },
   },
   extraReducers: (builder) => {
     builder.addCase(fetchTodos.rejected, (state) => {
@@ -206,7 +219,7 @@ export const todoSlice = createSlice({
   },
 });
 
-export const { add, remove, toggleIsDone } = todoSlice.actions;
+export const { add, remove, toggleIsDone, reorder } = todoSlice.actions;
 
 // Other code such as selectors can use the imported `RootState` type
 export const selectTodos = (state: RootState) => state.todo.todos;

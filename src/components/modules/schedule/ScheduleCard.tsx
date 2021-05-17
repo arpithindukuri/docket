@@ -1,3 +1,5 @@
+/* eslint-disable react/jsx-props-no-spreading */
+
 import {
   CSSProperties,
   MouseEvent,
@@ -22,21 +24,23 @@ import {
   Typography,
 } from '@material-ui/core';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
+import { useDndContext, useDndMonitor, useDraggable } from '@dnd-kit/core';
+
+import DocketContext from 'src/DocketContext';
+import { useAppDispatch, useAppSelector } from '../../../redux/hooks';
+import { deleteEvent, Event, updateEvent } from '../../../redux/eventSlice';
+import { selectTagByName } from '../../../redux/tagSlice';
 
 import styles from './ScheduleCard.module.scss';
-import { useAppDispatch, useAppSelector } from '../../../redux/hooks';
-import useDrag from '../../../react-grips/hooks/useDrag';
-import { deleteEvent, Event, updateEvent } from '../../../redux/eventSlice';
-import GripsContext from '../../../react-grips/context/GripsContext';
-import { selectTagByName } from '../../../redux/tagSlice';
 
 const snapToClosest = (num: number, snapTo: number) =>
   Math.round(num / snapTo) * snapTo;
 
 export interface PropTypes {
+  thisID: string;
   event: Event;
   hourHeight: number;
-  scrollRef: MutableRefObject<HTMLDivElement | null>;
+  scrollRef: MutableRefObject<HTMLElement | null>;
   thisDropID: string;
 }
 
@@ -53,12 +57,15 @@ const useStyles = makeStyles(() => ({
 }));
 
 export default function ScheduleCard({
+  thisID,
   event,
   hourHeight,
   scrollRef,
   thisDropID,
 }: PropTypes) {
-  const { dropID, dragData, setDragData } = useContext(GripsContext);
+  // const { dropID, dragData, setDragData } = useContext(GripsContext);
+  const dndContext = useDndContext();
+  const { dragSource, setScheduleDragData } = useContext(DocketContext);
   const dispatch = useAppDispatch();
 
   const start = parse(event.start, 'T', new Date());
@@ -79,7 +86,10 @@ export default function ScheduleCard({
   // ]);
 
   const onResizeEnd = useCallback(() => {
-    if (dragData.dragSource === 'schedule-resize' && dropID === thisDropID) {
+    if (
+      dragSource === 'schedule-resize' &&
+      dndContext.over?.id === thisDropID
+    ) {
       const absolutePosY = topState + ty;
       const hour = Math.round(~~(absolutePosY / hourHeight)); // eslint-disable-line no-bitwise
       const min = Math.round(
@@ -115,13 +125,14 @@ export default function ScheduleCard({
         }),
       );
     }
-  }, [dragData.dragSource, dropID, ty, topState, heightState]);
+  }, [dragSource, dndContext.over?.id, ty, topState, heightState]);
 
   const {
     isResizing: isResizingTop,
     sizeDiff: sizeDiffTop,
     resizeHandle: resizeHandleTop,
   } = ScheduleCardResizeHandle({
+    dragID: thisID,
     variant: 'top',
     style: {
       backgroundColor: `${chroma(c).darken(0.4)}`,
@@ -135,6 +146,7 @@ export default function ScheduleCard({
     sizeDiff: sizeDiffBottom,
     resizeHandle: resizeHandleBottom,
   } = ScheduleCardResizeHandle({
+    dragID: thisID,
     variant: 'bottom',
     style: {
       backgroundColor: `${chroma(c).darken(0.4)}`,
@@ -175,15 +187,11 @@ export default function ScheduleCard({
   // }, [isResizingBottom, sizeDiffBottom]);
 
   const onDragStart = useCallback(() => {
-    setDragData((prev) => ({
-      ...prev,
-      dragSource: 'schedule',
-      schedulePayload: { sourceScheduleDropID: thisDropID, event },
-    }));
-  }, [event]);
+    setScheduleDragData(thisDropID, event);
+  }, [thisDropID, event]);
 
   const onDragEnd = useCallback(() => {
-    if (dropID === thisDropID && dragData.dragSource === 'schedule') {
+    if (dndContext.over?.id === thisDropID && dragSource === 'schedule') {
       return () => {
         const absolutePosY = top + ty;
         const hour = ~~(absolutePosY / hourHeight); // eslint-disable-line no-bitwise
@@ -216,9 +224,16 @@ export default function ScheduleCard({
       };
     }
     return () => {};
-  }, [dragData.dragSource, dropID, ty]);
+  }, [dragSource, dndContext.over?.id, ty]);
 
-  const { draggableRef, handleRef, dragState, translateY } = useDragInParent({
+  const {
+    setNodeRef,
+    listeners,
+    attributes,
+    isDragging,
+    translateY,
+  } = useDragInParent({
+    dragID: thisID,
     validDropID: thisDropID,
     scrollRef,
     onDragStart,
@@ -226,9 +241,9 @@ export default function ScheduleCard({
   });
 
   useEffect(() => {
-    if (dragState.isDragging)
+    if (isDragging)
       setTy(() => snapToClosest(top + translateY, hourHeight / 4) - top);
-  }, [dragState.isDragging, translateY]);
+  }, [isDragging, translateY]);
 
   const classes = useStyles();
 
@@ -261,21 +276,21 @@ export default function ScheduleCard({
   return (
     <>
       <Card
-        ref={draggableRef}
+        ref={setNodeRef}
         className={`${styles.Container}`}
         style={{
-          opacity: dragState.isDragging ? '0.3' : '',
+          opacity: isDragging ? '0.3' : '',
           background: cs,
           position: 'absolute',
           top,
           height: eventHeight,
           minHeight,
           transition:
-            dragState.isDragging || sizeDiffTop !== 0 || sizeDiffBottom !== 0
+            isDragging || sizeDiffTop !== 0 || sizeDiffBottom !== 0
               ? 'height 0.1s, top 0.1s, transform 0.1s, opacity 0.5s'
               : 'opacity 0.3s',
-          transform: dragState.isDragging ? `translate(0px, ${ty}px)` : '',
-          zIndex: dragState.isDragging ? 1000 : 'unset',
+          transform: isDragging ? `translate(0px, ${ty}px)` : '',
+          zIndex: isDragging ? 1000 : 'unset',
         }}
         elevation={2}
       >
@@ -287,7 +302,9 @@ export default function ScheduleCard({
           <CardContent className={classes.cardContent}>
             <div className={styles.Body}>
               <Typography
-                ref={handleRef}
+                // ref={handleRef}
+                {...listeners}
+                {...attributes}
                 className={styles.Title}
                 variant="subtitle2"
               >
@@ -342,15 +359,17 @@ export default function ScheduleCard({
 ScheduleCardResizeHandle.defaultProps = { variant: 'top', style: {} };
 
 export function ScheduleCardResizeHandle({
+  dragID,
   variant,
   style,
   scrollRef,
   onResizeEnd,
   thisDropID,
 }: {
+  dragID: string;
   variant?: 'top' | 'bottom';
   style?: CSSProperties;
-  scrollRef: MutableRefObject<HTMLDivElement | null>;
+  scrollRef: MutableRefObject<HTMLElement | null>;
   onResizeEnd: () => void;
   thisDropID: string;
 }) {
@@ -376,25 +395,24 @@ export function ScheduleCardResizeHandle({
   };
 
   const [sizeDiff, setSizeDiff] = useState(0);
-  const { setDragData } = useContext(GripsContext);
+  const { setDragSource } = useContext(DocketContext);
+  // const { setDragData } = useContext(GripsContext);
 
-  const onDragStart = useCallback(() => {
-    setDragData((prev) => ({
-      ...prev,
-      dragSource: 'schedule-resize',
-    }));
-  }, [setDragData]);
+  const onDragStart = () => {
+    setDragSource('schedule-resize');
+  };
+
   const onDragEnd = useCallback(() => {
     onResizeEnd();
   }, [onResizeEnd]);
 
-  const { dragState, translateY, draggableRef } = useDragInParent({
+  const { isDragging, translateY, setNodeRef } = useDragInParent({
+    dragID: `${dragID}-handle-${variant}`,
     scrollRef,
     validDropID: thisDropID,
     onDragStart,
     onDragEnd,
     useClone: false,
-    // snapSize: hourHeight / 4,
   });
 
   useEffect(() => {
@@ -403,10 +421,10 @@ export function ScheduleCardResizeHandle({
 
   return {
     sizeDiff,
-    isResizing: dragState.isDragging,
+    isResizing: isDragging,
     resizeHandle: (
       <div
-        ref={draggableRef}
+        ref={setNodeRef}
         style={{ ...(variant === 'top' ? topStyle : bottomStyle), ...style }}
       />
     ),
@@ -414,61 +432,81 @@ export function ScheduleCardResizeHandle({
 }
 
 export function useDragInParent({
+  dragID,
   scrollRef,
   validDropID,
-  // snapSize = 1,
   onDragStart,
   onDragEnd,
   useClone = true,
 }: {
-  scrollRef: MutableRefObject<HTMLDivElement | null>;
+  dragID: string;
+  scrollRef: MutableRefObject<HTMLElement | null>;
   validDropID: string;
-  // snapSize?: number;
   onDragStart: () => void;
   onDragEnd: () => void;
   useClone?: boolean;
 }) {
-  const { dropID } = useContext(GripsContext);
+  // const { dropID } = useContext(GripsContext);
+  const { over } = useDndContext();
   const [startScroll, setStartScroll] = useState(0);
   const [translateY, setTranslateY] = useState(0);
 
   const thisOnDragStart = useCallback(() => {
     onDragStart();
-
     setStartScroll(
-      () =>
-        scrollRef.current?.parentElement?.parentElement?.parentElement
-          ?.parentElement?.scrollTop || 0,
+      () => scrollRef.current?.parentElement?.parentElement?.scrollTop || 0,
     );
   }, [onDragStart, scrollRef.current]);
 
   const thisOnDragEnd = useCallback(() => {
     onDragEnd();
-
     setTranslateY(() => 0);
   }, [onDragEnd]);
 
-  const { draggableRef, handleRef, dragState } = useDrag({
+  // const { draggableRef, handleRef, dragState } = useDrag({
+  //   onDragStart: thisOnDragStart,
+  //   onDragEnd: thisOnDragEnd,
+  //   useClone,
+  // });
+
+  if (useClone) {
+    // things here
+  }
+
+  useDndMonitor({
     onDragStart: thisOnDragStart,
     onDragEnd: thisOnDragEnd,
-    useClone,
   });
 
+  const {
+    setNodeRef,
+    isDragging,
+    transform,
+    listeners,
+    attributes,
+  } = useDraggable({ id: dragID });
+
   useEffect(() => {
-    if (dragState.isDragging && dropID === validDropID) {
+    if (isDragging && over?.id === validDropID && transform) {
       const num =
-        (scrollRef.current?.parentElement?.parentElement?.parentElement
-          ?.parentElement?.scrollTop || 0) -
-        startScroll +
-        dragState.deltaY;
+        (scrollRef.current?.parentElement?.parentElement?.scrollTop || 0) -
+          startScroll +
+          transform.y || 0;
       // num = Math.round(num / snapSize) * snapSize;
       setTranslateY(() => num);
     }
 
-    if (dragState.isDragging && !dropID) {
+    if (isDragging && !over) {
       setTranslateY(() => 0);
     }
-  }, [dragState.isDragging, dropID, dragState.deltaY, scrollRef.current]);
+  }, [isDragging, over, transform?.y, scrollRef.current]);
 
-  return { draggableRef, handleRef, dragState, translateY };
+  return {
+    isDragging,
+    setNodeRef,
+    listeners,
+    attributes,
+    transform,
+    translateY,
+  };
 }

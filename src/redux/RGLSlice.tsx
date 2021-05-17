@@ -37,7 +37,7 @@ const initialState: TodoState = {
   ],
 };
 
-export const tagSlice = createSlice({
+export const RGLSlice = createSlice({
   name: 'tag',
   // `createSlice` will infer the state type from the `initialState` argument
   initialState,
@@ -52,7 +52,7 @@ export const tagSlice = createSlice({
   },
 });
 
-export const { add, remove } = tagSlice.actions;
+export const { add, remove } = RGLSlice.actions;
 
 export const selectTags = (state: RootState) => state.tag.tags;
 export const selectDefault = (state: RootState) => state.tag.default;
@@ -60,4 +60,4 @@ export const selectDefault = (state: RootState) => state.tag.default;
 export const selectTagByName = (name: string) =>
   createSelector(selectTags, (tags) => tags.find((tag) => tag.name === name));
 
-export default tagSlice.reducer;
+export default RGLSlice.reducer;

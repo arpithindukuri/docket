@@ -106,12 +106,13 @@ export default class GridLayout extends PureComponent<
 
     return (
       <ResponsiveGridLayout
+        useCSSTransforms={false}
         className="layout"
         breakpoints={this.breakpoints}
         cols={{ lg: 18, md: 15, sm: 12, xs: 9, xxs: 6 }}
         rowHeight={50}
         draggableHandle=".module-handle"
-        margin={[12, 12]}
+        margin={[24, 24]}
         layouts={layouts}
         measureBeforeMount
         onLayoutChange={(layout, changeLayouts) =>

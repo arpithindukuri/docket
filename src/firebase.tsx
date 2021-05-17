@@ -25,12 +25,12 @@ const db = firebase.firestore();
 const funcs = firebase.functions();
 
 if (
-  window.location.hostname === '192.168.1.76' ||
+  window.location.hostname === '192.168.1.66' ||
   window.location.hostname === 'localhost'
 ) {
-  auth.useEmulator('http://192.168.1.76:9099');
-  db.useEmulator('192.168.1.76', 8080);
-  funcs.useEmulator('192.168.1.76', 5001);
+  auth.useEmulator('http://192.168.1.66:9099');
+  db.useEmulator('192.168.1.66', 8080);
+  funcs.useEmulator('192.168.1.66', 5001);
 }
 
 export default firebase;

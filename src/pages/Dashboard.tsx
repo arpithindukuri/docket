@@ -13,7 +13,6 @@ import ChatModule from '../components/modules/chat/ChatModule';
 export default function Dashboard() {
   return (
     <OverlayScrollbarsComponent
-      // style={{ height: '100%', width: '100%' }}
       style={{ flexGrow: 1 }}
       options={{ scrollbars: { autoHide: 'move' } }}
     >
@@ -28,7 +27,7 @@ export default function Dashboard() {
           <TodoModule />
         </div>
         <div key="board" data-grid={{ i: 'board', x: 0, y: 8, w: 8, h: 5 }}>
-          <Module title="module" />
+          <Module title="BOARD" />
         </div>
         <div key="module" data-grid={{ i: 'module', x: 8, y: 8, w: 3, h: 5 }}>
           <Module title="module" />

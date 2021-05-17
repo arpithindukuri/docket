@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react';
-import { OverlayScrollbarsComponent } from 'overlayscrollbars-react';
 import { format, startOfToday, addDays, subDays } from 'date-fns';
 import { IconButton, Typography } from '@material-ui/core';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
@@ -49,93 +48,90 @@ export default function ScheduleModule() {
 
   return (
     <Module title="SCHEDULE">
-      <OverlayScrollbarsComponent
+      <div
         style={{
-          height: '100%',
-          width: '100%',
-          overflow: 'hidden',
+          backgroundColor: 'white',
+          display: 'flex',
+          flexDirection: 'column',
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          top: 0,
+          bottom: 16,
+          overflow: 'auto',
         }}
-        options={{ scrollbars: { autoHide: 'move', autoHideDelay: 400 } }}
       >
         <div
           style={{
-            backgroundColor: 'white',
             display: 'flex',
-            flexDirection: 'column',
+            backgroundColor: 'white',
+            position: 'sticky',
+            top: '0px',
+            zIndex: 1000,
+            borderBottom: '1px solid rgba(0, 0, 0, 0.2)',
+            padding: '0 1rem',
           }}
         >
           <div
             style={{
-              display: 'flex',
-              backgroundColor: 'white',
-              position: 'sticky',
-              top: '0px',
-              zIndex: 500,
-              borderBottom: '1px solid rgba(0, 0, 0, 0.2)',
-              padding: '0 1rem',
+              width: '75px',
             }}
-          >
-            <div
-              style={{
-                width: '75px',
+          />
+          {rows.map((item, index) => {
+            const thisDate = addDays(date, index);
+
+            return (
+              <div
+                key={`schedule-day-label-${thisDate.toISOString()}`}
+                style={{
+                  flexGrow: 1,
+                }}
+              >
+                <Typography variant="subtitle2" align="center">
+                  {format(thisDate, 'EEE')}
+                </Typography>
+                <Typography variant="h5" align="center">
+                  {thisDate.getDate()}
+                </Typography>
+              </div>
+            );
+          })}
+          <div>
+            <IconButton
+              onClick={() => {
+                setDate((prev) => subDays(prev, 1));
               }}
-            />
-            {rows.map((item, index) => {
-              const thisDate = addDays(date, index);
-
-              return (
-                <div
-                  key={`schedule-day-label-${thisDate.toISOString()}`}
-                  style={{
-                    flexGrow: 1,
-                  }}
-                >
-                  <Typography variant="subtitle2" align="center">
-                    {format(thisDate, 'EEE')}
-                  </Typography>
-                  <Typography variant="h5" align="center">
-                    {thisDate.getDate()}
-                  </Typography>
-                </div>
-              );
-            })}
-            <div>
-              <IconButton
-                onClick={() => {
-                  setDate((prev) => subDays(prev, 1));
-                }}
-                style={{ position: 'absolute', left: 0 }}
-              >
-                <ChevronLeftIcon />
-              </IconButton>
-            </div>
-            <div>
-              <IconButton
-                onClick={() => {
-                  setDate((prev) => addDays(prev, 1));
-                }}
-                style={{ position: 'absolute', right: 0 }}
-              >
-                <ChevronRightIcon />
-              </IconButton>
-            </div>
+              style={{ position: 'absolute', left: 0 }}
+            >
+              <ChevronLeftIcon />
+            </IconButton>
           </div>
-          <div ref={ref} className={styles.Body}>
-            <ScheduleTimeLabel hourHeight={hourHeight} />
-            {rows.map((item, index) => {
-              const thisDate = addDays(date, index);
-
-              return (
-                <ScheduleDayGrid
-                  key={`schedule-day-grid-${thisDate.toISOString()}`}
-                  hourHeight={hourHeight}
-                  date={thisDate}
-                />
-              );
-            })}
+          <div>
+            <IconButton
+              onClick={() => {
+                setDate((prev) => addDays(prev, 1));
+              }}
+              style={{ position: 'absolute', right: 0 }}
+            >
+              <ChevronRightIcon />
+            </IconButton>
           </div>
         </div>
-      </OverlayScrollbarsComponent>
+        <div ref={ref} className={styles.Body}>
+          <ScheduleTimeLabel hourHeight={hourHeight} />
+          {rows.map((item, index) => {
+            const thisDate = addDays(date, index);
+
+            return (
+              <ScheduleDayGrid
+                key={`schedule-day-grid-${thisDate.toISOString()}`}
+                hourHeight={hourHeight}
+                date={thisDate}
+              />
+            );
+          })}
+        </div>
+      </div>
     </Module>
   );
 }
