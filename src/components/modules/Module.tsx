@@ -45,7 +45,6 @@ export default function Module({ title, children }: PropTypes) {
       className={classes.root}
       elevation={3}
       style={{ padding: 0 }}
-      // variant="outlined"
     >
       <CardHeader
         className={classes.header}

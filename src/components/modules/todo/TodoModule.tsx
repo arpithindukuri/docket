@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 // import { OverlayScrollbarsComponent } from 'overlayscrollbars-react';
-import { Divider, useTheme } from '@material-ui/core';
+import { createStyles, Divider, makeStyles } from '@material-ui/core';
 import { DragOverlay, useDndContext } from '@dnd-kit/core';
 import {
   SortableContext,
@@ -10,18 +10,38 @@ import {
 
 import DocketContext from 'src/DocketContext';
 import { reorder } from 'src/redux/todoSlice';
-import Draggable from 'src/components/Draggable';
+import Sortable from 'src/components/Sortable';
 import { useAppDispatch, useAppSelector } from '../../../redux/hooks';
 import Module from '../Module';
 import TodoCard from './TodoCard';
 import TodoInput from './TodoInput';
 
-import styles from './TodoModule.module.scss';
+const useStyles = makeStyles((theme) =>
+  createStyles({
+    container: {
+      width: '100%',
+      height: '100%',
+      display: 'flex',
+      flexDirection: 'column',
+      backgroundColor: theme.palette.background.paper,
+    },
+    body: {
+      padding: theme.spacing(2),
+      boxSizing: 'border-box',
+      display: 'flex',
+      flexDirection: 'column',
+      backgroundColor: theme.palette.background.paper,
+      flexGrow: 1,
+      overflowY: 'auto',
+    },
+  }),
+);
 
 export default function TodoModule() {
+  const classes = useStyles();
+
   const dispatch = useAppDispatch();
   const todos = useAppSelector((state) => state.todo.todos);
-  const theme = useTheme();
   const [activeIndex, setActiveIndex] = useState(-1);
   const [overIndex, setOverIndex] = useState(-1);
 
@@ -50,37 +70,20 @@ export default function TodoModule() {
 
   return (
     <Module title="TODO">
-      <div
-        className={styles.Container}
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          backgroundColor: theme.palette.background.paper,
-          height: '100%',
-        }}
-      >
+      <div className={classes.container}>
         <SortableContext
           items={todos?.map((todo) => `todo-key-${todo.key}`) || []}
           strategy={verticalListSortingStrategy}
         >
-          <div
-            className={styles.Body}
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              backgroundColor: theme.palette.background.paper,
-              flexGrow: 1,
-              overflowY: 'auto',
-            }}
-          >
+          <div className={classes.body}>
             {todos
               ? todos.map((item, index) => (
-                  <Draggable
+                  <Sortable
                     key={`todo-key-${item.key}`}
                     id={`todo-key-${item.key}`}
                   >
                     <TodoCard todo={item} isDragged={activeIndex === index} />
-                  </Draggable>
+                  </Sortable>
                 ))
               : 'loading'}
           </div>

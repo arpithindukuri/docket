@@ -1,10 +1,8 @@
 .firebase-emulator-warning {
   display: none;
 }
-
 .simplebar-content {
   padding: 0px;
-  // height: 100%;
 }
 .simplebar-mask {
   z-index: unset;
@@ -15,12 +13,11 @@
 .simplebar-content-wrapper {
   overflow: hidden;
 }
-
 .grabbable {
   cursor: grab;
-  &:active {
-    cursor: grabbing;
-  }
+}
+.grabbable:active {
+  cursor: grabbing;
 }
 .react-resizable-handle {
   background-image: none;
@@ -30,10 +27,7 @@
   width: 8px !important;
   border-right: 4px solid rgba(0, 0, 0, 0.4) !important;
   border-bottom: 4px solid rgba(0, 0, 0, 0.4) !important;
-  // border-radius: 0 0 0px 0;
-  // border-radius: 0 0 9px 0;
 }
-
 .noselect {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
@@ -42,71 +36,68 @@
   -ms-user-select: none;
   user-select: none;
 }
-
 @keyframes fadein {
   from {
     opacity: 0;
     transform: scale(1);
-  }
+ }
   to {
     opacity: 1;
     transform: scale(1.04);
-  }
+ }
 }
-
 /* Firefox < 16 */
 @-moz-keyframes fadein {
   from {
     opacity: 0;
     transform: scale(1);
-  }
+ }
   to {
     opacity: 1;
     transform: scale(1.04);
-  }
+ }
 }
-
 /* Safari, Chrome and Opera > 12.1 */
 @-webkit-keyframes fadein {
   from {
     opacity: 0;
     transform: scale(1);
-  }
+ }
   to {
     opacity: 1;
     transform: scale(1.04);
-  }
+ }
 }
-
 /* Internet Explorer */
 @-ms-keyframes fadein {
   from {
     opacity: 0;
     transform: scale(1);
-  }
+ }
   to {
     opacity: 1;
     transform: scale(1.04);
-  }
+ }
 }
-
 /* Opera < 12.1 */
 @-o-keyframes fadein {
   from {
     opacity: 0;
     transform: scale(1);
-  }
+ }
   to {
     opacity: 1;
     transform: scale(1.04);
-  }
+ }
 }
-
 .fade-in-on-create {
-  -webkit-animation: fadein 0.2s; /* Safari, Chrome and Opera > 12.1 */
-  -moz-animation: fadein 0.2s; /* Firefox < 16 */
-  -ms-animation: fadein 0.2s; /* Internet Explorer */
-  -o-animation: fadein 0.2s; /* Opera < 12.1 */
+  -webkit-animation: fadein 0.2s;
+ /* Safari, Chrome and Opera > 12.1 */
+  -moz-animation: fadein 0.2s;
+ /* Firefox < 16 */
+  -ms-animation: fadein 0.2s;
+ /* Internet Explorer */
+  -o-animation: fadein 0.2s;
+ /* Opera < 12.1 */
   animation: fadein 0.2s;
-  // transition: 0.2s;
 }

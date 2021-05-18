@@ -28,14 +28,43 @@ import {
 } from '../../../redux/eventSlice';
 import { selectTagByName } from '../../../redux/tagSlice';
 
-import styles from './ScheduleDayGrid.module.scss';
-
 export interface PropTypes {
   hourHeight: number;
   date: Date;
 }
 
 const useStyles = makeStyles((theme) => ({
+  container: {
+    display: 'flex',
+    flexDirection: 'column',
+    flexGrow: 1,
+    alignItems: 'center',
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  hourBlock: {
+    display: 'flex',
+    flexDirection: 'column',
+    boxSizing: 'border-box',
+    width: '100%',
+    borderBottom: '1px solid #ddd',
+    pointerEvents: 'none',
+  },
+  placeholder: {
+    position: 'absolute',
+    width: 'calc(100% - 0.5rem)',
+    borderRadius: '4px',
+    textAlign: 'center',
+    verticalAlign: 'middle',
+    fontWeight: 'bolder',
+    fontSize: '2rem',
+    color: 'white',
+    WebkitAnimation: 'fadein 0.2s',
+    MozAnimation: 'fadein 0.2s',
+    MsAnimation: 'fadein 0.2s',
+    OAnimation: 'fadein 0.2s',
+    animation: 'fadein 0.2s',
+  },
   timeBar: {
     position: 'absolute',
     width: '100%',
@@ -245,14 +274,14 @@ export default function ScheduleDayGrid({ hourHeight, date }: PropTypes) {
   return (
     <div
       ref={setNodeRef}
-      className={styles.Container}
+      className={classes.container}
       data-dropid={thisDropID}
       style={{ backgroundColor: isOver ? '#d4d4d4' : '' }}
     >
       {rows.map((item) => (
         <div
           key={`${thisDropID}-hour-${item}`}
-          className={styles.HourBlock}
+          className={classes.hourBlock}
           style={{ height: hourHeight }}
         >
           <div
@@ -305,7 +334,7 @@ export default function ScheduleDayGrid({ hourHeight, date }: PropTypes) {
         )}
       {isOver && isValidSource && (
         <Card
-          className={styles.Placeholder}
+          className={classes.placeholder}
           style={{
             height: hourHeight,
             // transition: 'transform 0.1s',

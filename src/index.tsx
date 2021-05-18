@@ -7,7 +7,7 @@ import { store } from './redux/store';
 import App from './App';
 
 // import '@fontsource/open-sans';
-import './index.scss';
+import './index.css';
 import '@fontsource/poppins/100.css';
 import '@fontsource/poppins/200.css';
 import '@fontsource/poppins/300.css';

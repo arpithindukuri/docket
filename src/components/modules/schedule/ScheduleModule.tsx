@@ -1,6 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { format, startOfToday, addDays, subDays } from 'date-fns';
-import { IconButton, Typography } from '@material-ui/core';
+import {
+  createStyles,
+  IconButton,
+  makeStyles,
+  Typography,
+} from '@material-ui/core';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 
@@ -11,9 +16,54 @@ import Module from '../Module';
 import ScheduleDayGrid from './ScheduleDayGrid';
 import ScheduleTimeLabel from './ScheduleTimeLabel';
 
-import styles from './ScheduleModule.module.scss';
+const useStyles = makeStyles((theme) =>
+  createStyles({
+    container: {
+      backgroundColor: theme.palette.background.paper,
+      display: 'flex',
+      flexDirection: 'column',
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      top: 0,
+      bottom: 16,
+      overflow: 'auto',
+    },
+    header: {
+      display: 'flex',
+      backgroundColor: 'white',
+      position: 'sticky',
+      top: '0px',
+      zIndex: 1000,
+      borderBottom: '1px solid rgba(0, 0, 0, 0.2)',
+      padding: '0 1rem',
+    },
+    headerSpacer: {
+      width: '75px',
+    },
+    headerLabel: {
+      flexGrow: 1,
+    },
+    leftButton: {
+      position: 'absolute',
+      left: 0,
+    },
+    rightButton: {
+      position: 'absolute',
+      right: 0,
+    },
+    body: {
+      width: '100%',
+      boxSizing: 'border-box',
+      padding: `0 ${theme.spacing(2)}`,
+      display: 'flex',
+    },
+  }),
+);
 
 export default function ScheduleModule() {
+  const classes = useStyles();
+
   const hourHeight = 65;
   const ref = useRef<HTMLDivElement>(null);
   const [numDays, setNumDays] = useState(1);
@@ -48,44 +98,16 @@ export default function ScheduleModule() {
 
   return (
     <Module title="SCHEDULE">
-      <div
-        style={{
-          backgroundColor: 'white',
-          display: 'flex',
-          flexDirection: 'column',
-          position: 'absolute',
-          left: 0,
-          right: 0,
-          top: 0,
-          bottom: 16,
-          overflow: 'auto',
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            backgroundColor: 'white',
-            position: 'sticky',
-            top: '0px',
-            zIndex: 1000,
-            borderBottom: '1px solid rgba(0, 0, 0, 0.2)',
-            padding: '0 1rem',
-          }}
-        >
-          <div
-            style={{
-              width: '75px',
-            }}
-          />
+      <div className={classes.container}>
+        <div className={classes.header}>
+          <div className={classes.headerSpacer} />
           {rows.map((item, index) => {
             const thisDate = addDays(date, index);
 
             return (
               <div
                 key={`schedule-day-label-${thisDate.toISOString()}`}
-                style={{
-                  flexGrow: 1,
-                }}
+                className={classes.headerLabel}
               >
                 <Typography variant="subtitle2" align="center">
                   {format(thisDate, 'EEE')}
@@ -101,7 +123,7 @@ export default function ScheduleModule() {
               onClick={() => {
                 setDate((prev) => subDays(prev, 1));
               }}
-              style={{ position: 'absolute', left: 0 }}
+              className={classes.leftButton}
             >
               <ChevronLeftIcon />
             </IconButton>
@@ -111,13 +133,13 @@ export default function ScheduleModule() {
               onClick={() => {
                 setDate((prev) => addDays(prev, 1));
               }}
-              style={{ position: 'absolute', right: 0 }}
+              className={classes.rightButton}
             >
               <ChevronRightIcon />
             </IconButton>
           </div>
         </div>
-        <div ref={ref} className={styles.Body}>
+        <div ref={ref} className={classes.body}>
           <ScheduleTimeLabel hourHeight={hourHeight} />
           {rows.map((item, index) => {
             const thisDate = addDays(date, index);

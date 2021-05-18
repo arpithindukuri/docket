@@ -16,6 +16,7 @@ import {
   Card,
   CardContent,
   CardHeader,
+  createStyles,
   IconButton,
   makeStyles,
   Menu,
@@ -31,8 +32,6 @@ import { useAppDispatch, useAppSelector } from '../../../redux/hooks';
 import { deleteEvent, Event, updateEvent } from '../../../redux/eventSlice';
 import { selectTagByName } from '../../../redux/tagSlice';
 
-import styles from './ScheduleCard.module.scss';
-
 const snapToClosest = (num: number, snapTo: number) =>
   Math.round(num / snapTo) * snapTo;
 
@@ -44,17 +43,45 @@ export interface PropTypes {
   thisDropID: string;
 }
 
-const useStyles = makeStyles(() => ({
-  buttonBase: {
-    flexGrow: 1,
-    justifyContent: 'start',
-    alignItems: 'start',
-    minHeight: 0,
-  },
-  cardContent: {
-    padding: 0,
-  },
-}));
+const useStyles = makeStyles((theme) =>
+  createStyles({
+    container: {
+      position: 'absolute',
+      display: 'flex',
+      flexDirection: 'column',
+      width: 'calc(100% - 0.5rem)',
+      borderRadius: '0.5rem',
+      backgroundColor: 'white',
+      transition: '0.3s',
+      overflow: 'hidden',
+    },
+    tag: {
+      fontSize: '0.8rem',
+      fontWeight: 'bold',
+    },
+    body: {
+      display: 'flex',
+      flexGrow: 1,
+      alignItems: 'center',
+      padding: '1rem',
+    },
+    title: {
+      color: 'white',
+      margin: '0',
+      padding: '0',
+      cursor: 'grab',
+    },
+    buttonBase: {
+      flexGrow: 1,
+      justifyContent: 'start',
+      alignItems: 'start',
+      minHeight: 0,
+    },
+    cardContent: {
+      padding: 0,
+    },
+  }),
+);
 
 export default function ScheduleCard({
   thisID,
@@ -277,11 +304,10 @@ export default function ScheduleCard({
     <>
       <Card
         ref={setNodeRef}
-        className={`${styles.Container}`}
+        className={`${classes.container}`}
         style={{
           opacity: isDragging ? '0.3' : '',
           background: cs,
-          position: 'absolute',
           top,
           height: eventHeight,
           minHeight,
@@ -300,12 +326,11 @@ export default function ScheduleCard({
           disabled={isResizingTop || isResizingBottom}
         >
           <CardContent className={classes.cardContent}>
-            <div className={styles.Body}>
+            <div className={classes.body}>
               <Typography
-                // ref={handleRef}
                 {...listeners}
                 {...attributes}
-                className={styles.Title}
+                className={classes.title}
                 variant="subtitle2"
               >
                 {event.title}

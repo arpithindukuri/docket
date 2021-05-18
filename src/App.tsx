@@ -29,7 +29,7 @@ import { DocketProvider } from './DocketContext';
 
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
-import './Helper.scss';
+import './Helper.css';
 
 const defaultTheme = createMuiTheme({
   shape: { borderRadius: 0 },
