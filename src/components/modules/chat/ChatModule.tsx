@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import classNames from 'classnames';
+import { createStyles, makeStyles } from '@material-ui/core';
 
 import { useAppSelector } from '../../../redux/hooks';
 import Module from '../Module';
@@ -7,7 +8,6 @@ import Module from '../Module';
 import ChatList from './ChatList';
 import ChatScreen from './ChatScreen';
 import { selectChatsOverview } from '../../../redux/chatSlice';
-import { createStyles, makeStyles } from '@material-ui/core';
 
 const useStyles = makeStyles(() =>
   createStyles({

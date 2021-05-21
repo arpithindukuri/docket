@@ -1,5 +1,4 @@
 import { makeStyles } from '@material-ui/core';
-import styles from './ScheduleDayGrid.module.scss';
 
 export interface PropTypes {
   hourHeight: number;
@@ -12,6 +11,14 @@ const useStyles = makeStyles({
     flexDirection: 'column',
     overflow: 'hidden',
     textAlign: 'center',
+  },
+  hourBlock: {
+    display: 'flex',
+    flexDirection: 'column',
+    boxSizing: 'border-box',
+    width: '100%',
+    borderBottom: '1px solid #ddd',
+    pointerEvents: 'none',
   },
 });
 
@@ -29,7 +36,7 @@ export default function ScheduleTimeLabel({ hourHeight }: PropTypes) {
         return (
           <div
             key={`schedule-grid-hour-${item}`}
-            className={styles.HourBlock}
+            className={classes.hourBlock}
             style={{ height: hourHeight }}
           >
             {text}

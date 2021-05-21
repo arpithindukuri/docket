@@ -43,7 +43,7 @@ export interface PropTypes {
   thisDropID: string;
 }
 
-const useStyles = makeStyles((theme) =>
+const useStyles = makeStyles(() =>
   createStyles({
     container: {
       position: 'absolute',
